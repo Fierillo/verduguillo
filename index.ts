@@ -5,11 +5,31 @@ import http from 'http';
 // Load environment variables from .env file
 config();
 
-// Create a simple server to keep the bot alive
+// Create a simple HTTP server
 http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Verduguillo is alive!');
+    console.log(`Solicitud recibida: ${req.url} desde ${req.headers['user-agent']}`);
+    if (req.url === '/keep-alive') {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('Verduguillo is alive!');
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('Not Found');
+    }
 }).listen(3000);
+  
+// Autoping every 4 minutes to keep the server alive in Glitch
+setInterval(async () => {
+try {
+    const response = await fetch('https://verduguillo.glitch.me/keep-alive');
+    if (response.ok) {
+    console.log('Autoping exitoso');
+    } else {
+    console.log('Autoping falló:', response.status);
+    }
+} catch (error) {
+    console.error('Error en autoping:', error);
+}
+}, 240000); // 4 minutes
 
 // Define main variables
 const client = new Client({
