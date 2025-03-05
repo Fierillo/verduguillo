@@ -1,6 +1,6 @@
 // Polyfill for ReadableStream
 const { ReadableStream } = require('web-streams-polyfill');
-global.ReadableStream = ReadableStream; // Asignar al entorno global
+global.ReadableStream = ReadableStream;
 
 const { Client, GatewayIntentBits } = require('discord.js');
 const http = require('http');

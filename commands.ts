@@ -1,4 +1,8 @@
-import { ChatInputCommandInteraction, PermissionFlagsBits } from 'discord.js';
+import { REST, Routes, SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction } from 'discord.js';
+import { config } from 'dotenv';
+
+// Load environment variables from .env file
+config();
 
 // Configuration bot interface
 interface Config {
@@ -7,14 +11,56 @@ interface Config {
     shitcoinerRoleName: string;
 }
 
-// Function to handle slash commands
+// Defines /config Discord command
+const commands = [
+    new SlashCommandBuilder()
+        .setName('config')
+        .setDescription('Configura el bot (solo para roles superiores)')
+        .addStringOption(option =>
+            option.setName('setting')
+                .setDescription('Qué quieres configurar')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'Emoji', value: 'emoji' },
+                    { name: 'Umbral de reacciones', value: 'threshold' },
+                    { name: 'Rol de castigo', value: 'role' }
+                ))
+        .addStringOption(option =>
+            option.setName('value')
+                .setDescription('Nuevo valor para la configuración')
+                .setRequired(true))
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+        .toJSON(),
+];
+
+// Register commands in Discord
+export async function registerCommands(): Promise<void> {
+    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!);
+    try {
+        console.log('Registering slash commands...');
+        // Global registration (takes up to 1 hour to update)
+        //await rest.put(Routes.applicationCommands('TU_APPLICATION_ID'), { body: commands });
+        // Local server registration (inmediate update)
+        if (process.env.BOT_ID && process.env.SERVER_ID) {
+            await rest.put(Routes.applicationGuildCommands(process.env.BOT_ID, process.env.SERVER_ID), { body: commands });
+        } else {
+            console.error('Error trying to register commands: BOT_ID and SERVER_ID are required in .env file');
+        }
+        console.log('Commands registered successfully!');
+    } catch (error) {
+        console.error('Error trying to register commands:', error);
+    }
+    // Ejecute function when module is imported
+    registerCommands();
+}
+
+// Function to handle /config command
 export async function handleCommands(
     interaction: ChatInputCommandInteraction,
-    config: Config,
+    getConfig: () => Config,
     updateConfig: (updates: Partial<Config>) => void
 ): Promise<void> {
     if (interaction.commandName === 'config') {
-        // Check if the user has the "Manage roles" permissions
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles)) {
             await interaction.reply({ content: 'No tienes permiso para usar este comando.', ephemeral: true });
             return;
@@ -36,8 +82,8 @@ export async function handleCommands(
                 break;
             case 'threshold':
                 const thresholdNum = parseInt(value);
-                if (isNaN(thresholdNum) || thresholdNum < 1) {
-                    await interaction.reply({ content: 'El umbral debe ser un número positivo.', ephemeral: true });
+                if (isNaN(thresholdNum) || thresholdNum < 1 || !Number.isInteger(thresholdNum)) {
+                    await interaction.reply({ content: 'El umbral debe ser un número entero positivo.', ephemeral: true });
                     return;
                 }
                 updates.reactionThreshold = thresholdNum;

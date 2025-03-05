@@ -1,7 +1,6 @@
 import { Client, GatewayIntentBits, GuildMember, Role, TextChannel, User } from 'discord.js';
 import { config } from 'dotenv';
-import http from 'http';
-import { handleCommands } from './commands';
+import { handleCommands, registerCommands } from './commands';
 
 // Load environment variables from .env file
 config();
@@ -16,6 +15,7 @@ const client = new Client({
 });
 // Load Discord token
 client.login(process.env.DISCORD_TOKEN);
+// Default variable values
 let emojiName = '💩'; 
 let reactionThreshold = 1; 
 let shitcoinerRoleName = 'shitcoiner'; 
@@ -46,7 +46,7 @@ async function getPunishment(member: GuildMember, shitcoinerRole: Role, targetUs
     }
 }
 
-// Starting message, load old messages in the cache
+// Starting bot event, also register commands
 client.on('ready', async () => {
     console.log(`${client.user?.tag} is alive!`);
 });
@@ -61,12 +61,12 @@ client.on('messageReactionAdd', async (reaction) => {
 
     // Verify if the reaction is :poop:
     if (reaction.emoji.name === emojiName) {
-        console.log(`Shit detected for user: ${reaction.message.author.tag}`);
         // Get the reaction count
         const reactionCount = reaction.count;
+        console.log(`Shit detected for user: ${reaction.message.author.tag}, count: ${reactionCount}`);
 
         // If message has more than threshold reactions, punish the author
-        if (reactionCount ?? 0 >= reactionThreshold) {
+        if (reactionCount && reactionCount >= reactionThreshold) {
             const guild = reaction.message.guild;
             if (!guild) return;
             
@@ -84,9 +84,14 @@ client.on('messageReactionAdd', async (reaction) => {
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
-    await handleCommands(interaction, { emojiName, reactionThreshold, shitcoinerRoleName }, (updates) => {
-        if (updates.emojiName) emojiName = updates.emojiName;
-        if (updates.reactionThreshold) reactionThreshold = updates.reactionThreshold;
-        if (updates.shitcoinerRoleName) shitcoinerRoleName = updates.shitcoinerRoleName;
+    await handleCommands(interaction, () => ({
+        emojiName,
+        reactionThreshold,
+        shitcoinerRoleName
+    }), (updates) => {
+        if (updates.emojiName !== undefined) emojiName = updates.emojiName;
+        if (updates.reactionThreshold !== undefined) reactionThreshold = updates.reactionThreshold;
+        if (updates.shitcoinerRoleName !== undefined) shitcoinerRoleName = updates.shitcoinerRoleName;
+        console.log('Configuración actualizada:', { emojiName, reactionThreshold, shitcoinerRoleName });
     });
 });
