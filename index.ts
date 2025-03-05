@@ -1,11 +1,11 @@
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, GuildMember, Role, TextChannel, User } from 'discord.js';
 import { config } from 'dotenv';
 import http from 'http';
 
 // Load environment variables from .env file
 config();
 
-// Create a simple HTTP server
+/*// Create a simple HTTP server
 http.createServer((req, res) => {
     console.log(`Solicitud recibida: ${req.url} desde ${req.headers['user-agent']}`);
     if (req.url === '/keep-alive') {
@@ -29,7 +29,7 @@ try {
 } catch (error) {
     console.error('Error en autoping:', error);
 }
-}, 240000); // 4 minutes
+}, 240000); // 4 minutes*/
 
 // Define main variables
 const client = new Client({
@@ -46,7 +46,7 @@ const reactionThreshold = 1;
 const shitcoinerRoleName = 'shitcoiner'; 
 
 // Defines punishment function
-async function getPunishment(member: any, shitcoinerRole: any, targetUser: any, channel: any) {
+async function getPunishment(member: GuildMember, shitcoinerRole: Role, targetUser: User, channel: TextChannel) {
     // Checks if the member exists
     if (!member) {
         console.log(`Miembro no encontrado para el usuario: ${targetUser.tag}`);
@@ -57,7 +57,6 @@ async function getPunishment(member: any, shitcoinerRole: any, targetUser: any, 
         console.log(`"${shitcoinerRoleName}" role doesn't exist in the server`);
         return;
     }
-
     // Execute punishment, only if the user doesn't have the shitcoiner role
     if (!member.roles.cache.has(shitcoinerRole.id)) {
         try {
@@ -74,7 +73,7 @@ async function getPunishment(member: any, shitcoinerRole: any, targetUser: any, 
 
 // Starting message, load old messages in the cache
 client.on('ready', async () => {
-    console.log(`Bot listo como ${client.user?.tag}`);
+    console.log(`${client.user?.tag} is alive!`);
 });
 
 client.on('messageReactionAdd', async (reaction) => {
@@ -95,12 +94,13 @@ client.on('messageReactionAdd', async (reaction) => {
         if (reactionCount ?? 0 >= reactionThreshold) {
             const guild = reaction.message.guild;
             if (!guild) return;
+            
             const targetUser = reaction.message.author; // Message author
             const member = guild.members.cache.get(targetUser.id);
             const shitcoinerRole = guild.roles.cache.find(role => role.name === shitcoinerRoleName);
-            
             const channel = reaction.message.channel;
-            getPunishment(member, shitcoinerRole, targetUser, channel);
+            
+            await getPunishment(member as GuildMember, shitcoinerRole!, targetUser, channel as TextChannel);
         }
     }
 });
