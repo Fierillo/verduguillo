@@ -18,31 +18,22 @@ client.login(process.env.DISCORD_TOKEN);
 // Default variable values
 let emojiName = '💩'; 
 let reactionThreshold = 1; 
-let shitcoinerRoleName = 'shitcoiner'; 
+let shitcoinerRoleName = 'shitcoiner';
+const requiredRoleName = 'normie'; 
 
 // Defines punishment function
 async function getPunishment(member: GuildMember, shitcoinerRole: Role, targetUser: User, channel: TextChannel) {
-    // Checks if the member exists
-    if (!member) {
-        console.log(`Miembro no encontrado para el usuario: ${targetUser.tag}`);
-        return;
-    }
-    // Checks if the shitcoiner role exists
-    if (!shitcoinerRole) {
-        console.log(`"${shitcoinerRoleName}" role doesn't exist in the server`);
-        return;
-    }
-    // Execute punishment, only if the user doesn't have the shitcoiner role
+    // execute punishment, only if the user doesn't have the shitcoiner role
     if (!member.roles.cache.has(shitcoinerRole.id)) {
         try {
             await member.roles.add(shitcoinerRole);
-            await channel.send(`El usuario ${targetUser.tag} fue castigado por acumulacion de caquitas 💩`);
-            console.log(`User ${targetUser.tag} was punished successfully`);
+            await channel.send(`El usuario ${targetUser.tag} fue castigado por acumulación de caquitas 💩`);
+            console.log(`user ${targetUser.tag} was punished successfully`);
         } catch (error) {
-            console.error(`Error trying to punish user ${targetUser.tag}`, error);
+            console.error(`error trying to punish user ${targetUser.tag}`, error);
         }
     } else {
-        console.log(`User ${targetUser.tag} already was punished!`);
+        console.log(`user ${targetUser.tag} already was punished!`);
     }
 }
 
@@ -51,31 +42,60 @@ client.on('ready', async () => {
     console.log(`${client.user?.tag} is alive!`);
 });
 
-client.on('messageReactionAdd', async (reaction) => {
-    console.log(`New reaction detected, analyzing...`);
+client.on('messageReactionAdd', async (reaction, user) => {
+    // fetch the reaction and message if they are partial
     if (reaction.partial) await reaction.fetch();
     if (reaction.message.partial) await reaction.message.fetch();
-
-    // Ignore bot reactions
+    
+    // check if bot is in a server already
+    if (!reaction.message.guild) return console.log(`Bot is not in a server yet`);
+    const guild = reaction.message.guild;
+    
+    // check if shitcoiner role exists in the server
+    const shitcoinerRole = guild.roles.cache.find(role => role.name === shitcoinerRoleName);
+    if (!shitcoinerRole) {
+        return console.log(`"${shitcoinerRoleName}" role doesn't exist in the server "${guild}"`);
+    }
+    // check if required role exists in the server
+    const requiredRole = guild.roles.cache.find(role => role.name === requiredRoleName);
+    if (!requiredRole) {
+        return console.log(`"${requiredRoleName}" role doesn't exist in the server "${guild}"`);
+    }
+    // ignore bot reactions
     if (!reaction.message.author || reaction.message.author.bot) return;
 
-    // Verify if the reaction is :poop:
-    if (reaction.emoji.name === emojiName) {
-        // Get the reaction count
-        const reactionCount = reaction.count;
-        console.log(`Shit detected for user: ${reaction.message.author.tag}, count: ${reactionCount}`);
+    // check if user has the required role
+    const member = await guild.members.fetch(user.id).catch(() => null);
+    if (!member) return;
+    if (!member.roles.cache.has(requiredRole.id)) {
+        return console.log(`user "${member.user.tag}" in server "${guild}" doesn't have the required role "${requiredRoleName}"`);
+    };
 
-        // If message has more than threshold reactions, punish the author
-        if (reactionCount && reactionCount >= reactionThreshold) {
-            const guild = reaction.message.guild;
-            if (!guild) return;
-            
-            const targetUser = reaction.message.author; // Message author
-            const member = guild.members.cache.get(targetUser.id);
-            const shitcoinerRole = guild.roles.cache.find(role => role.name === shitcoinerRoleName);
-            const channel = reaction.message.channel;
-            
-            await getPunishment(member as GuildMember, shitcoinerRole!, targetUser, channel as TextChannel);
+    // check if the reaction fits the required emoji
+    if (!(reaction.emoji.name === emojiName)) return;
+
+    // give total users that reacted to the message
+    const users = await reaction.users.fetch();
+    
+    // filter users that have the required role
+    const validReactors = await Promise.all(
+        users.map(async (reactUser) => {
+            if (reactUser.bot) return false;
+            if (!member) return false;
+            return member.roles.cache.has(requiredRole.id);
+        })
+    );
+    
+    // count valid reactions
+    const validReactionCount = validReactors.filter(Boolean).length;
+    console.log(`valid "${emojiName}" detected for user "${reaction.message.author.tag}" in server "${guild}"\nvalid count: ${validReactionCount}/${reactionThreshold}`);
+
+    // if the reaction count is equal or greater than the threshold, punish the user
+    if (validReactionCount >= reactionThreshold) {
+        const targetUser = reaction.message.author;
+        const channel = reaction.message.channel;
+        if (member) {
+            await getPunishment(member, shitcoinerRole, targetUser, channel as TextChannel);
         }
     }
 });
