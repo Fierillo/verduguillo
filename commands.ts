@@ -9,6 +9,7 @@ interface Config {
     emojiName: string;
     reactionThreshold: number;
     shitcoinerRoleName: string;
+    requiredRoleName: string;
 }
 
 // Defines /config Discord command
@@ -16,20 +17,43 @@ const commands = [
     new SlashCommandBuilder()
         .setName('config')
         .setDescription('Configura el bot (solo para roles superiores)')
-        .addStringOption(option =>
-            option.setName('setting')
-                .setDescription('Qué quieres configurar')
-                .setRequired(true)
-                .addChoices(
-                    { name: 'Emoji', value: 'emoji' },
-                    { name: 'Umbral de reacciones', value: 'threshold' },
-                    { name: 'Rol de castigo', value: 'role' }
-                ))
-        .addStringOption(option =>
-            option.setName('value')
-                .setDescription('Nuevo valor para la configuración')
-                .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('emoji')
+                .setDescription('¿Con que emoji quieres castigar?')
+                .addStringOption(option =>
+                    option
+                        .setName('value')
+                        .setDescription('El nuevo emoji')
+                        .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('threshold')
+                .setDescription('¿Cuántas reacciones necesitas para castigar?')
+                .addIntegerOption(option =>
+                    option
+                        .setName('value')
+                        .setDescription('El nuevo umbral')
+                        .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('shit_role')
+                .setDescription('¿Qué rol quieres darle a los castigados?')
+                .addRoleOption(option =>
+                    option
+                        .setName('role')
+                        .setDescription('Selecciona el rol de castigo')
+                        .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('required_role')
+                .setDescription('¿Que rol es requerido para castigar?')
+                .addRoleOption(option =>
+                    option
+                        .setName('role')
+                        .setDescription('Selecciona el rol requerido')
+                        .setRequired(true)))
         .toJSON(),
 ];
 
@@ -50,8 +74,6 @@ export async function registerCommands(): Promise<void> {
     } catch (error) {
         console.error('Error trying to register commands:', error);
     }
-    // Ejecute function when module is imported
-    registerCommands();
 }
 
 // Function to handle /config command
@@ -68,19 +90,28 @@ export async function handleCommands(
 
         const setting = interaction.options.getString('setting');
         const value = interaction.options.getString('value');
+        const roleValue = interaction.options.getRole('role_value');
 
-        if (!setting || !value) {
-            await interaction.reply({ content: 'Faltan parámetros: setting y value son requeridos.', ephemeral: true });
+        if (!setting) {
+            await interaction.reply({ content: 'Falta el parámetro setting.', ephemeral: true });
             return;
         }
 
         const updates: Partial<Config> = {};
         switch (setting) {
             case 'emoji':
+                if (!value) {
+                    await interaction.reply({ content: 'Falta el valor para emoji.', ephemeral: true });
+                    return;
+                }
                 updates.emojiName = value;
                 await interaction.reply(`Emoji actualizado a: ${value}`);
                 break;
             case 'threshold':
+                if (!value) {
+                    await interaction.reply({ content: 'Falta el valor para threshold.', ephemeral: true });
+                    return;
+                }
                 const thresholdNum = parseInt(value);
                 if (isNaN(thresholdNum) || thresholdNum < 1 || !Number.isInteger(thresholdNum)) {
                     await interaction.reply({ content: 'El umbral debe ser un número entero positivo.', ephemeral: true });
@@ -90,11 +121,23 @@ export async function handleCommands(
                 await interaction.reply(`Umbral de reacciones actualizado a: ${thresholdNum}`);
                 break;
             case 'role':
-                updates.shitcoinerRoleName = value;
-                await interaction.reply(`Rol de castigo actualizado a: ${value}`);
+                if (!roleValue) {
+                    await interaction.reply({ content: 'Falta seleccionar un rol para role.', ephemeral: true });
+                    return;
+                }
+                updates.shitcoinerRoleName = roleValue.name;
+                await interaction.reply(`Rol de castigo actualizado a: ${roleValue.name}`);
+                break;
+            case 'required_role':
+                if (!roleValue) {
+                    await interaction.reply({ content: 'Falta seleccionar un rol para required_role.', ephemeral: true });
+                    return;
+                }
+                updates.requiredRoleName = roleValue.name;
+                await interaction.reply(`Rol requerido actualizado a: ${roleValue.name}`);
                 break;
             default:
-                await interaction.reply({ content: 'Configuración no válida. Usa: emoji, threshold o role.', ephemeral: true });
+                await interaction.reply({ content: 'Configuración no válida. Usa: emoji, threshold, role o required_role.', ephemeral: true });
                 return;
         }
         updateConfig(updates);
