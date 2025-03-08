@@ -1,2 +1,2 @@
 # Verduguillo
-### A simple Discord bot that punished users according to community reactions.
+### A simple Discord bot that punishes users according to community reactions.
