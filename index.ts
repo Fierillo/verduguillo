@@ -18,8 +18,8 @@ client.login(process.env.DISCORD_TOKEN);
 // Default variable values
 let emojiName = process.env.EMOJI; 
 let reactionThreshold = Number(process.env.SHIT_THRESHOLD); 
-let shitcoinerRoleName = process.env.REQUIRED_ROLE;
-let requiredRoleName = process.env.SHIT_ROLE; 
+let shitcoinerRoleName = process.env.SHIT_ROLE;
+let requiredRoleName = process.env.REQUIRED_ROLE; 
 
 // Defines punishment function
 async function getPunishment(member: GuildMember, shitcoinerRole: Role, targetUser: User, channel: TextChannel) {
