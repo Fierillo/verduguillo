@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, GuildMember, Role, TextChannel, User } from 'discord.js';
+import { Client, GatewayIntentBits, GuildMember, Message, Role, TextChannel, User } from 'discord.js';
 import { config } from 'dotenv';
 //import { handleCommands, registerCommands } from './commands';
 
@@ -16,13 +16,13 @@ const client = new Client({
 // Load Discord token
 client.login(process.env.DISCORD_TOKEN);
 // Default variable values
-let emojiName = process.env.EMOJI; 
+let emojiName: any = process.env.EMOJI; 
 let reactionThreshold = Number(process.env.SHIT_THRESHOLD); 
 let shitcoinerRoleName = process.env.SHIT_ROLE;
 let requiredRoleName = process.env.REQUIRED_ROLE; 
 
 // Defines punishment function
-async function addPunishment(shitcoinerRole: Role, targetUser: User, channel: TextChannel) {
+async function addPunishment(shitcoinerRole: Role, targetUser: User, channel: TextChannel, targetMessage: Message) {
     let guild = channel.guild;
     const targetMember = await guild.members.fetch(targetUser.id).catch(() => null);
     if (!targetMember) {
@@ -32,8 +32,15 @@ async function addPunishment(shitcoinerRole: Role, targetUser: User, channel: Te
     if (!targetMember.roles.cache.has(shitcoinerRole.id)) {
         try {
             await targetMember.roles.add(shitcoinerRole);
-            await channel.send(`El usuario ${targetUser.tag} fue castigado por acumulación de caquitas 💩`);
+            await channel.send(`El usuario ${targetUser.tag} fue castigado por acumulación de caquitas ${emojiName}`);
             console.log(`user ${targetUser.tag} was punished successfully`);
+            // remove all 💩 in the user
+            const reactionToRemove = targetMessage.reactions.cache.get(emojiName);
+            if (reactionToRemove) {
+                await reactionToRemove.remove();
+            }
+            // add a different reaction to proof the user was punished
+            await targetMessage.react(`:caca2:1135681119233257663`);
         } catch (error) {
             console.error(`error trying to punish user ${targetUser.tag}`, error);
         }
@@ -101,7 +108,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         const targetUser = reaction.message.author;
         const channel = reaction.message.channel;
         if (member) {
-            await addPunishment(shitcoinerRole, targetUser, channel as TextChannel);
+            await addPunishment(shitcoinerRole, targetUser, channel as TextChannel, reaction.message as Message);
         }
     }
 });
