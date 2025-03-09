@@ -22,11 +22,16 @@ let shitcoinerRoleName = process.env.SHIT_ROLE;
 let requiredRoleName = process.env.REQUIRED_ROLE; 
 
 // Defines punishment function
-async function getPunishment(member: GuildMember, shitcoinerRole: Role, targetUser: User, channel: TextChannel) {
+async function addPunishment(shitcoinerRole: Role, targetUser: User, channel: TextChannel) {
+    let guild = channel.guild;
+    const targetMember = await guild.members.fetch(targetUser.id).catch(() => null);
+    if (!targetMember) {
+        return console.log(`the user ${targetUser.id} to punish isn't in the server`);
+    }
     // execute punishment, only if the user doesn't have the shitcoiner role
-    if (!member.roles.cache.has(shitcoinerRole.id)) {
+    if (!targetMember.roles.cache.has(shitcoinerRole.id)) {
         try {
-            await member.roles.add(shitcoinerRole);
+            await targetMember.roles.add(shitcoinerRole);
             await channel.send(`El usuario ${targetUser.tag} fue castigado por acumulación de caquitas 💩`);
             console.log(`user ${targetUser.tag} was punished successfully`);
         } catch (error) {
@@ -96,7 +101,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         const targetUser = reaction.message.author;
         const channel = reaction.message.channel;
         if (member) {
-            await getPunishment(member, shitcoinerRole, targetUser, channel as TextChannel);
+            await addPunishment(shitcoinerRole, targetUser, channel as TextChannel);
         }
     }
 });
