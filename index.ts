@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, GuildMember, Role, TextChannel, User } from 'discord.js';
 import { config } from 'dotenv';
-import { handleCommands, registerCommands } from './commands';
+//import { handleCommands, registerCommands } from './commands';
 
 // Load environment variables from .env file
 config();
