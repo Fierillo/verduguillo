@@ -16,10 +16,10 @@ const client = new Client({
 // Load Discord token
 client.login(process.env.DISCORD_TOKEN);
 // Default variable values
-let emojiName = '💩'; 
-let reactionThreshold = 1; 
-let shitcoinerRoleName = 'shitcoiner';
-let requiredRoleName = 'normie'; 
+let emojiName = process.env.EMOJI; 
+let reactionThreshold = Number(process.env.SHIT_THRESHOLD); 
+let shitcoinerRoleName = process.env.REQUIRED_ROLE;
+let requiredRoleName = process.env.SHIT_ROLE; 
 
 // Defines punishment function
 async function getPunishment(member: GuildMember, shitcoinerRole: Role, targetUser: User, channel: TextChannel) {
@@ -40,7 +40,7 @@ async function getPunishment(member: GuildMember, shitcoinerRole: Role, targetUs
 // Starting bot event, also register commands
 client.on('ready', async () => {
     console.log(`${client.user?.tag} is alive!`);
-    registerCommands();
+    //registerCommands();
 });
 
 client.on('messageReactionAdd', async (reaction, user) => {
@@ -101,7 +101,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     }
 });
 
-// Command slash configuration
+/*// Command slash configuration
 client.on('interactionCreate', async (interaction) => {
     // ignore if the interaction is not a command
     if (!interaction.isChatInputCommand()) return;
@@ -118,4 +118,4 @@ client.on('interactionCreate', async (interaction) => {
         if (updates.requiredRoleName !== undefined) requiredRoleName = updates.requiredRoleName;
         console.log('Configuración actualizada:', { emojiName, reactionThreshold, shitcoinerRoleName });
     });
-});
+});*/
