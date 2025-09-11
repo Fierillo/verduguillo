@@ -25,13 +25,10 @@ async function applyPunishment(targetMember: GuildMember, punishmentRole: Role, 
     if (!targetMember.roles.cache.has(punishmentRole.id)) {
         try {
             await targetMember.roles.add(punishmentRole);
-            await messageChannel.send(`El usuario ${targetUser.tag} fue castigado por acumulación de caquitas 💩`);
+            await messageChannel.send(`El usuario <@${targetUser.id}> fue castigado por acumulación de caquitas 💩`);
             console.log(`user ${targetUser.tag} was punished successfully`);
-            
             await reaction.users.remove(targetUser);
-            
             await reaction.message.react(`:caca2:1135681119233257663`);
-            console.log(`Added 👍 reaction to the message`);
         } catch (error) {
             console.error(`error trying to punish user ${targetUser.tag}`, error);
         }
@@ -44,7 +41,7 @@ async function applyForgiveness(targetMember: GuildMember, punishmentRole: Role,
     if (targetMember.roles.cache.has(punishmentRole.id)) {
         try {
             await targetMember.roles.remove(punishmentRole);
-            await messageChannel.send(`TABULA RASA! El usuario ${targetUser.tag} fue perdonado por acumulación de corazones ❤️`);
+            await messageChannel.send(`¡TABULA RASA!\nEl usuario <@${targetUser.id}> fue perdonado por acumulación de corazones ❤️`);
             console.log(`user ${targetUser.tag} was forgiven successfully`);
         } catch (error) {
             console.error(`error trying to forgive user ${targetUser.tag}`, error);
