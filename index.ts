@@ -107,6 +107,10 @@ discordClient.on('messageReactionAdd', async (reaction, reactingUser) => {
             await applyPunishment(targetMember, punishmentRole, targetUser, messageChannel, reaction);
         }
     } else if (reaction.emoji.name === forgivenessEmoji) {
+        if (!targetMember.roles.cache.has(punishmentRole.id)) {
+        console.log(`user ${targetUser.tag} is not punished, ignoring forgiveness reaction`);
+        return;
+        }
         const allReactors = await reaction.users.fetch();
         const validForgivenessReactors = await Promise.all(
             allReactors.map(async (reactor) => {
