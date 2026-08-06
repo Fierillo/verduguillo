@@ -1,24 +1,23 @@
 {
-    "name": "verduguillo",
-    "version": "1.0.0",
-    "description": "",
-    "main": "dist/index.js",
-    "scripts": {
-      "build": "tsc",
-      "start": "node dist/index.js",
-      "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "keywords": [],
-    "author": "Fierillo",
-    "license": "MIT",
-    "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0",
-    "dependencies": {
-      "discord.js": "^14.18.0",
-      "dotenv": "^16.4.7",
-      "ts-node": "^10.9.2",
-      "typescript": "^5.7.3",
-      "web-streams-polyfill": "^4.1.0",
-      "node-fetch": "^2.6.12"
-    }
+  "name": "verduguillo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Fierillo",
+  "license": "MIT",
+  "packageManager": "pnpm@11.20.0+sha512-mm8zCpW2ZEbqCI+vFSFAWooB8H/ecSTMmVjf7VLUu0NnN+ZbCPhfN7Rvy6N1CSVYrFEmK4FoRLIvY0Bu0Wa/7g==",
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "web-streams-polyfill": "^4.1.0",
+    "node-fetch": "^2.6.12"
   }
-  
+}
